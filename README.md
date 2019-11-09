@@ -1,3 +1,11 @@
+# nonstdio
+Bart Massey
+
+This crate is a WIP technology demo for a new design for
+Rust stdio.
+
+## Background
+
 `Stdout` / `StdoutLock` always wraps an internal
 `LineWriter` that scans the output for line breaks and
 flushes there; this in turn sits atop a 1024-byte
@@ -67,19 +75,6 @@ wrong as usual, but this is my take):
 * The API in general is awkward and error-prone. See
     https://play.rust-lang.org/?gist=4f56375c11978a75bb18e480250e04f8
 
-Here's how I think (?) I wish Rust stdio worked. This sketch
+This crate is how I think (?) I wish Rust stdio worked. This sketch
 is inspired pretty heavily by UNIX stdio as it has evolved.
-It probably has a number of problems. In this description, I
-will use `Stdx` as a shorthand for `Stdin` or `Stdout` or
-`Stderr` where they are symmetric (which is as much
-possible).
-
-* `StdxRaw` is a `File`
-  object. User code can obtain a mutex guard to stdx
-  via `stdx_raw()` which implicitly locks `Stdx`.
-  
-* `Stdx` is `Arc<ReentrantMutex<StdxRaw>>` etc. `Stdx`
-  implements both `Read` and `Write`, locking the underlying
-  file for the duration.
-
-* 
+It probably has a number of problems.
