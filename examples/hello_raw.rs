@@ -3,5 +3,6 @@ use nonstdio::*;
 
 fn main() {
     let mut stdout = stdout_raw();
-    writeln!(stdout.get_mut(), "hello world").unwrap();
+    let stdout = stdout.get_file();
+    let _ = writeln!(stdout, "hello world").unwrap();
 }
