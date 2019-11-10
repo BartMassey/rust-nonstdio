@@ -4,11 +4,48 @@ Bart Massey
 This crate is a WIP technology demo for a new design for
 Rust stdio.
 
+This sketch is inspired pretty heavily by UNIX stdio as it
+has evolved. It probably has a number of problems.
+
+## Architecture
+
+At the bottom level, stdin, stdout and stderr are
+`Mutex`-protected `File`s created from fds 0, 1, and 2 via
+`OnceCell` on first access (to any of them). Currently there
+is no check that the fds are valid. A raw interface is
+provided to get locked versions of the `File`s.
+
+At the buffered level, each stdio element can be wrapped an
+input/output buffer pair. The pair locks at the raw level to
+do I/O. The buffer object is custom and intended to provide
+reasonable efficiency.
+
+## Status
+
+* Raw stdout is working.
+
+* Buffered stdout is working.
+
+* TODO: Finish stdin, stderr.
+
+* TODO: Add the ability to lock buffered stdio by adding an
+  `Option<MutexGuard>` to the buffer. This should also
+  eliminate any need for a `ReentrantMutex`?
+
+* TODO: Add a line buffering option for buffered output.
+
+* TODO: Add a line reader for buffered input, returning
+  a `String`.
+
+* TODO: Implement `BufRead` and `BufWrite` for buffered I/O.
+
+* TODO: Write `println!()` and friends.
+
 ## Background
 
-`Stdout` / `StdoutLock` always wraps an internal
-`LineWriter` that scans the output for line breaks and
-flushes there; this in turn sits atop a 1024-byte
+In Rust `std::io`, `Stdout` / `StdoutLock` always wraps an
+internal `LineWriter` that scans the output for line breaks
+and flushes there; this in turn sits atop a 1024-byte
 (hardcoded) `BufWriter`. If you do a larger write to
 `Stdout` the `LineWriter` will flush the current buffer and
 pass the write through. As far as I can tell there is no way
@@ -75,6 +112,5 @@ wrong as usual, but this is my take):
 * The API in general is awkward and error-prone. See
     https://play.rust-lang.org/?gist=4f56375c11978a75bb18e480250e04f8
 
-This crate is how I think (?) I wish Rust stdio worked. This sketch
-is inspired pretty heavily by UNIX stdio as it has evolved.
-It probably has a number of problems.
+This crate is a very rough approximation of how I think (?)
+I wish Rust stdio worked.
