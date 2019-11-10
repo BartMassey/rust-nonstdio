@@ -1,6 +1,6 @@
 use std::fmt;
 use std::io::{self, ErrorKind, Write};
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 use crate::*;
 
@@ -33,6 +33,12 @@ impl<'a> StdioBuf<'a> {
             file,
         }
     }
+
+    fn locked_file(&mut self) -> io::Result<MutexGuard<'a, StdioFile>> {
+        self.file.lock().or_else(|_| {
+            Err(io::Error::new(ErrorKind::Other, LockPoisonError))
+        })
+    }
 }
 
 impl<'a> Write for StdioBuf<'a> {
@@ -48,9 +54,7 @@ impl<'a> Write for StdioBuf<'a> {
             self.out_buf.extend_from_slice(buf);
             return Ok(nbuf);
         }
-        let mut file = self.file.lock().or_else(|_| {
-            Err(io::Error::new(ErrorKind::Other, LockPoisonError))
-        })?;
+        let mut file = self.locked_file()?;
         file.get_file().write(buf)
     }
 
@@ -59,9 +63,7 @@ impl<'a> Write for StdioBuf<'a> {
         if buf_fill == 0 {
             return Ok(());
         }
-        let mut file = self.file.lock().or_else(|_| {
-            Err(io::Error::new(ErrorKind::Other, LockPoisonError))
-        })?;
+        let mut file = self.locked_file()?;
         let n = file.get_file().write(&self.out_buf)?;
         if n == buf_fill {
             return Ok(());
