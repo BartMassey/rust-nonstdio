@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::fs::File;
-use std::os::unix::io::{RawFd, FromRawFd};
+use std::os::unix::io::{FromRawFd, RawFd};
 use std::sync::MutexGuard;
 
 use crate::*;

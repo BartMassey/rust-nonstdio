@@ -1,5 +1,5 @@
 use std::fmt;
-use std::io::{self, Write, ErrorKind};
+use std::io::{self, ErrorKind, Write};
 use std::sync::Mutex;
 
 use crate::*;
@@ -23,7 +23,10 @@ pub struct StdioBuf<'a> {
 }
 
 impl<'a> StdioBuf<'a> {
-    pub fn new(nbuf: usize, file: &'a Mutex<StdioFile>) -> StdioBuf<'a> {
+    pub fn new(
+        nbuf: usize,
+        file: &'a Mutex<StdioFile>,
+    ) -> StdioBuf<'a> {
         StdioBuf {
             in_buf: Vec::with_capacity(nbuf),
             out_buf: Vec::with_capacity(nbuf),
@@ -45,12 +48,9 @@ impl<'a> Write for StdioBuf<'a> {
             self.out_buf.extend_from_slice(buf);
             return Ok(nbuf);
         }
-        let mut file = self.file
-            .lock()
-            .or_else(|_| Err(io::Error::new(
-                ErrorKind::Other,
-                LockPoisonError,
-            )))?;
+        let mut file = self.file.lock().or_else(|_| {
+            Err(io::Error::new(ErrorKind::Other, LockPoisonError))
+        })?;
         file.get_file().write(buf)
     }
 
@@ -59,12 +59,9 @@ impl<'a> Write for StdioBuf<'a> {
         if buf_fill == 0 {
             return Ok(());
         }
-        let mut file = self.file
-            .lock()
-            .or_else(|_| Err(io::Error::new(
-                ErrorKind::Other,
-                LockPoisonError,
-            )))?;
+        let mut file = self.file.lock().or_else(|_| {
+            Err(io::Error::new(ErrorKind::Other, LockPoisonError))
+        })?;
         let n = file.get_file().write(&self.out_buf)?;
         if n == buf_fill {
             return Ok(());
