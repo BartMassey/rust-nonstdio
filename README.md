@@ -26,11 +26,14 @@ reasonable efficiency.
 
 * Buffered stdout is working.
 
+* Locking buffered stdio by adding an `Option<MutexGuard>`
+  to the buffer is working.
+
 * TODO: Finish stdin, stderr.
 
-* TODO: Add the ability to lock buffered stdio by adding an
-  `Option<MutexGuard>` to the buffer. This should also
-  eliminate any need for a `ReentrantMutex`?
+* TODO: Figure out why `std::io` uses a `ReentrantMutex` so
+  that we can find out whether we should too. `parking_lot`
+  has one if needed.
 
 * TODO: Add a line buffering option for buffered output.
 
@@ -40,6 +43,8 @@ reasonable efficiency.
 * TODO: Implement `BufRead` and `BufWrite` for buffered I/O.
 
 * TODO: Write `println!()` and friends.
+
+* TODO: Implement a comprehensive test suite.
 
 ## Background
 

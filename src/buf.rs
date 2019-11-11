@@ -20,6 +20,7 @@ pub struct StdioBuf<'a> {
     in_buf: Vec<u8>,
     out_buf: Vec<u8>,
     file: &'a Mutex<StdioFile>,
+    guard: Option<MutexGuard<'a, StdioFile>>,
 }
 
 impl<'a> StdioBuf<'a> {
@@ -31,13 +32,43 @@ impl<'a> StdioBuf<'a> {
             in_buf: Vec::with_capacity(nbuf),
             out_buf: Vec::with_capacity(nbuf),
             file,
+            guard: None,
         }
     }
 
-    fn locked_file(&mut self) -> io::Result<MutexGuard<'a, StdioFile>> {
-        self.file.lock().or_else(|_| {
+    pub fn lock_buf(&mut self) -> io::Result<()> {
+        if self.is_locked() {
+            return Ok(());
+        }
+        let guard = self.file.lock().or_else(|_| {
             Err(io::Error::new(ErrorKind::Other, LockPoisonError))
-        })
+        })?;
+        self.guard = Some(guard);
+        Ok(())
+    }
+
+    pub fn is_locked(&self) -> bool {
+        self.guard.is_some()
+    }
+
+    pub fn unlock_buf(&mut self) {
+        if self.is_locked() {
+            self.guard = None;
+        }
+    }
+
+    #[must_use]
+    pub fn lock(mut self) -> Self {
+        self.lock_buf().unwrap();
+        self
+    }
+
+    fn write_buf(&mut self, buf: Option<&[u8]>) -> io::Result<usize> {
+        let buf = match buf {
+            None => &self.out_buf,
+            Some(buf) => buf,
+        };
+        self.guard.as_mut().unwrap().get_file().write(buf)
     }
 }
 
@@ -46,16 +77,31 @@ impl<'a> Write for StdioBuf<'a> {
         let buf_size = self.out_buf.capacity();
         let buf_fill = self.out_buf.len();
         let mut nbuf = buf.len();
+        let prelocked = self.is_locked();
+        let mut locked = prelocked;
         if nbuf + buf_fill > buf_size {
+            if !locked {
+                self.lock_buf()?;
+                locked = true;
+            }
             self.flush()?;
             nbuf = buf_size;
         }
         if nbuf + buf_fill <= buf_size {
+            if locked && !prelocked {
+                self.unlock_buf();
+            }
             self.out_buf.extend_from_slice(buf);
             return Ok(nbuf);
         }
-        let mut file = self.locked_file()?;
-        file.get_file().write(buf)
+        if !locked {
+            self.lock_buf()?;
+        }
+        let n = self.write_buf(Some(buf))?;
+        if !prelocked {
+            self.unlock_buf();
+        }
+        Ok(n)
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -63,9 +109,16 @@ impl<'a> Write for StdioBuf<'a> {
         if buf_fill == 0 {
             return Ok(());
         }
-        let mut file = self.locked_file()?;
-        let n = file.get_file().write(&self.out_buf)?;
+        let prelocked = self.is_locked();
+        if !prelocked {
+            self.lock_buf()?;
+        }
+        let n = self.write_buf(None)?;
+        if !prelocked {
+            self.unlock_buf();
+        }
         if n == buf_fill {
+            self.out_buf.clear();
             return Ok(());
         }
         unimplemented!("short write");
