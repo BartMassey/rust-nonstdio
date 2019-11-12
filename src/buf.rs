@@ -57,7 +57,7 @@ impl UnVec {
         self.buf.len() - self.start
     }
 
-    fn extract(&mut self, buf: &mut[u8]) {
+    fn extract(&mut self, buf: &mut [u8]) {
         let nbuf = buf.len();
         let start = self.start;
         self.start += nbuf;
@@ -126,7 +126,10 @@ impl<'a> StdioBuf<'a> {
         self.guard.as_mut().unwrap().get_file().write(buf)
     }
 
-    fn read_buf(&mut self, buf: Option<&mut [u8]>) -> io::Result<usize> {
+    fn read_buf(
+        &mut self,
+        buf: Option<&mut [u8]>,
+    ) -> io::Result<usize> {
         assert!(!self.in_closed);
         let file = self.guard.as_mut().unwrap().get_file();
         log!("starting read_buf f:{:?} b:{}", file, buf.is_some());
@@ -145,7 +148,7 @@ impl<'a> StdioBuf<'a> {
                     self.in_buf.buf.truncate(n);
                 }
                 Ok(n)
-            },
+            }
             Some(mut buf) => {
                 let nbuf = buf.len();
                 assert!(nbuf > 0);
@@ -289,11 +292,11 @@ fn make_stdio(fd: usize) -> StdioBuf<'static> {
 pub fn stdin() -> StdioBuf<'static> {
     make_stdio(0)
 }
-    
+
 pub fn stdout() -> StdioBuf<'static> {
     make_stdio(1)
 }
-    
+
 pub fn stderr() -> StdioBuf<'static> {
     make_stdio(2)
 }
