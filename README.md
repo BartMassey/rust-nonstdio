@@ -119,3 +119,8 @@ wrong as usual, but this is my take):
 
 This crate is a very rough approximation of how I think (?)
 I wish Rust stdio worked.
+
+## License
+
+"MIT". Please see the file `LICENSE` in this distribution
+for license terms.
