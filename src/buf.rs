@@ -4,6 +4,16 @@ use std::sync::{Mutex, MutexGuard};
 
 use crate::*;
 
+#[cfg(feature = "debug")]
+macro_rules! log {
+    ($($args:expr),*) => {eprintln!($($args),*)};
+}
+
+#[cfg(not(feature = "debug"))]
+macro_rules! log {
+    ($($args:expr),*) => {};
+}
+
 #[derive(Debug)]
 pub struct LockPoisonError;
 
@@ -64,6 +74,7 @@ pub struct StdioBuf<'a> {
     out_buf: Vec<u8>,
     file: &'a Mutex<StdioFile>,
     guard: Option<MutexGuard<'a, StdioFile>>,
+    in_closed: bool,
 }
 
 impl<'a> StdioBuf<'a> {
@@ -76,6 +87,7 @@ impl<'a> StdioBuf<'a> {
             out_buf: Vec::with_capacity(nbuf),
             file,
             guard: None,
+            in_closed: false,
         }
     }
 
@@ -115,13 +127,21 @@ impl<'a> StdioBuf<'a> {
     }
 
     fn read_buf(&mut self, buf: Option<&mut [u8]>) -> io::Result<usize> {
-        assert!(self.in_buf.len() == 0);
-        assert!(self.in_buf.start == 0);
+        assert!(!self.in_closed);
         let file = self.guard.as_mut().unwrap().get_file();
+        log!("starting read_buf f:{:?} b:{}", file, buf.is_some());
         match buf {
             None => {
+                assert!(self.in_buf.len() == 0);
+                let buf_size = self.in_buf.capacity();
+                self.in_buf.start = 0;
+                self.in_buf.buf.resize(buf_size, 0);
                 let n = file.read(&mut self.in_buf.buf)?;
-                if n < self.in_buf.capacity() {
+                log!("read_buf free fill n:{}", n);
+                if n == 0 {
+                    self.in_closed = true;
+                }
+                if n < buf_size {
                     self.in_buf.buf.truncate(n);
                 }
                 Ok(n)
@@ -130,16 +150,15 @@ impl<'a> StdioBuf<'a> {
                 let nbuf = buf.len();
                 assert!(nbuf > 0);
                 loop {
-                    let n = file.read(buf)?;
                     let nleft = buf.len();
-                    if n == nleft {
+                    if nleft == 0 {
                         return Ok(nbuf);
                     }
+                    let n = file.read(buf)?;
+                    log!("read_buf target fill n:{}", n);
                     if n == 0 {
-                        return Err(io::Error::new(
-                            ErrorKind::UnexpectedEof,
-                            EarlyEofError(nleft),
-                        ));
+                        self.in_closed = true;
+                        return Ok(nbuf - nleft);
                     }
                     buf = &mut buf[n..];
                 }
@@ -203,21 +222,28 @@ impl<'a> Write for StdioBuf<'a> {
 
 impl<'a> Read for StdioBuf<'a> {
     fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
+        if self.in_closed {
+            return Ok(0);
+        }
         let buf_size = self.in_buf.capacity();
         let nbuf = buf.len();
+        log!("starting read n:{} bs:{}", nbuf, buf_size);
         let prelocked = self.is_locked();
         let mut locked = prelocked;
         loop {
             let nleft = buf.len();
             let buf_fill = self.in_buf.len();
+            log!("starting loop n:{} bs:{}", nleft, buf_fill);
             if nleft <= buf_fill {
                 self.in_buf.extract(buf);
                 if locked && !prelocked {
                     self.unlock_buf();
                 }
+                log!("satisfying read from buffer n:{}", nbuf);
                 return Ok(nbuf);
             }
             if buf_fill > 0 {
+                log!("partial read from buffer n:{}", buf_fill);
                 self.in_buf.extract(&mut buf[..buf_fill]);
                 buf = &mut buf[buf_fill..];
                 continue;
@@ -227,18 +253,24 @@ impl<'a> Read for StdioBuf<'a> {
                 locked = true;
             }
             if nleft > buf_size {
-                let _ = self.read_buf(Some(buf))?;
+                let n = self.read_buf(Some(buf))?;
                 if locked && !prelocked {
                     self.unlock_buf();
                 }
-                return Ok(nbuf);
+                let nread = nbuf - nleft + n;
+                log!("overfull read n:{} r:{}", nbuf, nread);
+                return Ok(nread);
             }
             let n = self.read_buf(None)?;
+            log!("filling buffer n:{}", n);
             if n == 0 {
                 if locked && !prelocked {
                     self.unlock_buf();
                 }
-                return Ok(0);
+                self.in_closed = true;
+                let n = nbuf - nleft;
+                log!("returning n:{}", n);
+                return Ok(n);
             }
         }
     }

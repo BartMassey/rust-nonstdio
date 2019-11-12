@@ -22,14 +22,12 @@ reasonable efficiency.
 
 ## Status
 
-* Raw stdout is working.
+* Raw stdin, stdout, stderr are working.
 
-* Buffered stdout is working.
+* Buffered stdin, stdout, stderr are working.
 
 * Locking buffered stdio by adding an `Option<MutexGuard>`
   to the buffer is working.
-
-* TODO: Finish stdin, stderr.
 
 * TODO: Figure out why `std::io` uses a `ReentrantMutex` so
   that we can find out whether we should too. `parking_lot`
@@ -37,10 +35,12 @@ reasonable efficiency.
 
 * TODO: Add a line buffering option for buffered output.
 
-* TODO: Add a line reader for buffered input, returning
-  a `String`.
+* TODO: Add a line reader for buffered input, returning a
+  String. (Maybe? What about non-UTF8 line reading?)
 
 * TODO: Implement `BufRead` and `BufWrite` for buffered I/O.
+
+* TODO: Add an `fdopen`-like feature to buffer other files.
 
 * TODO: Write `println!()` and friends.
 
