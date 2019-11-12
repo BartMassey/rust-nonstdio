@@ -25,17 +25,6 @@ impl fmt::Display for LockPoisonError {
     }
 }
 
-#[derive(Debug)]
-pub struct EarlyEofError(usize);
-
-impl std::error::Error for EarlyEofError {}
-
-impl fmt::Display for EarlyEofError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 struct UnVec {
     buf: Vec<u8>,
     start: usize,
