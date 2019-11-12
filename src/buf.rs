@@ -51,7 +51,7 @@ impl UnVec {
         let nbuf = buf.len();
         let start = self.start;
         self.start += nbuf;
-        buf.copy_from_slice(&mut self.buf[start..self.start]);
+        buf.copy_from_slice(&self.buf[start..self.start]);
         if self.start == self.capacity() {
             self.buf.clear();
             self.start = 0;
@@ -124,7 +124,7 @@ impl<'a> StdioBuf<'a> {
                 if n < self.in_buf.capacity() {
                     self.in_buf.buf.truncate(n);
                 }
-                return Ok(n);
+                Ok(n)
             },
             Some(mut buf) => {
                 let nbuf = buf.len();
@@ -144,7 +144,7 @@ impl<'a> StdioBuf<'a> {
                     buf = &mut buf[n..];
                 }
             }
-        };
+        }
     }
 }
 
@@ -235,6 +235,9 @@ impl<'a> Read for StdioBuf<'a> {
             }
             let n = self.read_buf(None)?;
             if n == 0 {
+                if locked && !prelocked {
+                    self.unlock_buf();
+                }
                 return Ok(0);
             }
         }
@@ -247,8 +250,8 @@ impl<'a> Drop for StdioBuf<'a> {
     }
 }
 
-fn make_stdio(n: usize) -> StdioBuf<'static> {
-    StdioBuf::new(1024, &stdio().0[n])
+fn make_stdio(fd: usize) -> StdioBuf<'static> {
+    StdioBuf::new(1024, &stdio().0[fd])
 }
 
 pub fn stdin() -> StdioBuf<'static> {
