@@ -29,6 +29,8 @@ reasonable efficiency.
 * Locking buffered stdio by adding an `Option<MutexGuard>`
   to the buffer is working.
 
+* Implemented `print!()` etc as `nprint!()` etc.
+
 * TODO: Figure out why `std::io` uses a `ReentrantMutex` so
   that we can find out whether we should too. `parking_lot`
   has one if needed.
@@ -41,8 +43,6 @@ reasonable efficiency.
 * TODO: Implement `BufRead` and `BufWrite` for buffered I/O.
 
 * TODO: Add an `fdopen`-like feature to buffer other files.
-
-* TODO: Write `println!()` and friends.
 
 * TODO: Implement a comprehensive test suite.
 
