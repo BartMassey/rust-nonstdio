@@ -31,20 +31,20 @@ reasonable efficiency.
 
 * Implemented `print!()` etc as `nprint!()` etc.
 
-* TODO: Figure out why `std::io` uses a `ReentrantMutex` so
-  that we can find out whether we should too. `parking_lot`
-  has one if needed.
-
 * TODO: Add a line buffering option for buffered output.
 
 * TODO: Add a line reader for buffered input, returning a
   String. (Maybe? What about non-UTF8 line reading?)
 
-* TODO: Implement `BufRead` and `BufWrite` for buffered I/O.
+* TODO: Implement `BufRead` trait for input.
 
 * TODO: Add an `fdopen`-like feature to buffer other files.
 
 * TODO: Implement a comprehensive test suite.
+
+* TODO: Figure out why `std::io` uses a `ReentrantMutex` so
+  that we can find out whether we should too. `parking_lot`
+  has one if needed.
 
 ## Background
 
