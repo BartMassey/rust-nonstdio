@@ -22,27 +22,27 @@ reasonable efficiency.
 
 ## Status
 
-* Raw stdin, stdout, stderr are working.
+* [x] Implement raw stdin, stdout, stderr.
 
-* Buffered stdin, stdout, stderr are working.
+* [x] Implement buffered stdin, stdout, stderr.
 
-* Locking buffered stdio by adding an `Option<MutexGuard>`
-  to the buffer is working.
+* [x] Implement locking buffered stdio by adding an
+  `Option<MutexGuard>` to the buffer.
 
-* Implemented `print!()` etc as `nprint!()` etc.
+* [x] Implement `print!()` etc as `nprint!()` etc.
 
-* TODO: Add a line buffering option for buffered output.
+* [ ] Add a line buffering option for buffered output.
 
-* TODO: Add a line reader for buffered input, returning a
+* [ ] Add a line reader for buffered input, returning a
   String. (Maybe? What about non-UTF8 line reading?)
 
-* TODO: Implement `BufRead` trait for input.
+* [ ] Implement `BufRead` trait for input.
 
-* TODO: Add an `fdopen`-like feature to buffer other files.
+* [ ] Add an `fdopen`-like feature to buffer other files.
 
-* TODO: Implement a comprehensive test suite.
+* [ ] Implement a comprehensive test suite.
 
-* TODO: Figure out why `std::io` uses a `ReentrantMutex` so
+* [ ] Figure out why `std::io` uses a `ReentrantMutex` so
   that we can find out whether we should too. `parking_lot`
   has one if needed.
 
