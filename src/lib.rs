@@ -4,6 +4,8 @@ mod buf;
 mod fmt;
 mod raw;
 
+const STDIO_NBUF: usize = 1024;
+
 use crate::fds::*;
 
 pub use crate::buf::*;

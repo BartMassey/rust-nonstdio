@@ -274,18 +274,18 @@ impl<'a> Drop for StdioBuf<'a> {
     }
 }
 
-fn make_stdio(fd: usize) -> StdioBuf<'static> {
-    StdioBuf::new(1024, &stdio().0[fd])
+fn make_stdio(fd: usize, nbuf: usize) -> StdioBuf<'static> {
+    StdioBuf::new(nbuf, &stdio().0[fd])
 }
 
 pub fn stdin() -> StdioBuf<'static> {
-    make_stdio(0)
+    make_stdio(0, STDIO_NBUF)
 }
 
 pub fn stdout() -> StdioBuf<'static> {
-    make_stdio(1)
+    make_stdio(1, STDIO_NBUF)
 }
 
 pub fn stderr() -> StdioBuf<'static> {
-    make_stdio(2)
+    make_stdio(2, STDIO_NBUF)
 }
