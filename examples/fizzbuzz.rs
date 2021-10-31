@@ -3,10 +3,9 @@ use nonstdio::nwriteln;
 fn main() {
     let n = std::env::args()
         .nth(1)
-        .unwrap_or_else(|| "10000000".to_string())
-        .parse::<usize>()
-        .unwrap();
-    let mut stdout = nonstdio::stdout_with_nbuf(32 * 1024).lock();
+        .map(|s| s.parse::<usize>().unwrap())
+        .unwrap_or(10_000_000);
+    let mut stdout = nonstdio::stdout();
     for i in 1..=n {
         match (i % 3 == 0, i % 5 == 0) {
             (false, false) => nwriteln!(stdout, "{}", i),
