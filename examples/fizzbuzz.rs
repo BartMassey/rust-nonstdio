@@ -14,5 +14,5 @@ fn main() {
             (false, true) => nwriteln!(stdout, "buzz"),
             (true, true) => nwriteln!(stdout, "fizzbuzz"),
         }
-    } 
+    }
 }

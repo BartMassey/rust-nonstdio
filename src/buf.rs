@@ -67,10 +67,7 @@ pub struct StdioBuf<'a> {
 }
 
 impl<'a> StdioBuf<'a> {
-    pub fn new(
-        nbuf: usize,
-        file: &'a Mutex<StdioFile>,
-    ) -> StdioBuf<'a> {
+    pub fn new(nbuf: usize, file: &'a Mutex<StdioFile>) -> StdioBuf<'a> {
         StdioBuf {
             in_buf: UnVec::with_capacity(nbuf),
             out_buf: Vec::with_capacity(nbuf),
@@ -84,9 +81,10 @@ impl<'a> StdioBuf<'a> {
         if self.is_locked() {
             return Ok(());
         }
-        let guard = self.file.lock().map_err(|_| {
-            io::Error::new(ErrorKind::Other, LockPoisonError)
-        })?;
+        let guard = self
+            .file
+            .lock()
+            .map_err(|_| io::Error::new(ErrorKind::Other, LockPoisonError))?;
         self.guard = Some(guard);
         Ok(())
     }
@@ -115,10 +113,7 @@ impl<'a> StdioBuf<'a> {
         self.guard.as_mut().unwrap().get_file().write(buf)
     }
 
-    fn read_buf(
-        &mut self,
-        buf: Option<&mut [u8]>,
-    ) -> io::Result<usize> {
+    fn read_buf(&mut self, buf: Option<&mut [u8]>) -> io::Result<usize> {
         assert!(!self.in_closed);
         let file = self.guard.as_mut().unwrap().get_file();
         log!("starting read_buf f:{:?} b:{}", file, buf.is_some());
