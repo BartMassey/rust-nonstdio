@@ -1,8 +1,6 @@
-use std::io::Write;
-
 use nonstdio::*;
 
 fn main() {
-    let mut stdout = stdout().lock();
-    let _ = writeln!(stdout, "hello world").unwrap();
+    let mut stdout = nonstdio::stdout().lock();
+    nwriteln!(stdout, "hello world");
 }

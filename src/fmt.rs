@@ -1,37 +1,47 @@
 #[macro_export]
+macro_rules! nwriteln {
+    ($file:expr, $($args:tt)*) => {{
+        $crate::nwrite!($file, $($args)*);
+        $crate::nwrite!($file, "\n");
+    }};
+}
+
+#[macro_export]
 macro_rules! nprintln {
     ($($args:tt)*) => {{
+        let mut stdout = $crate::stdout();
+        $crate::nwriteln!(stdout, $($args)*);
+    }};
+}
+
+#[macro_export]
+macro_rules! nwrite {
+    ($file: expr, $($args:tt)*) => {{
         use std::io::Write;
-        let mut stdout = $crate::stdout().lock();
-        stdout.write_fmt(format_args!($($args)*)).unwrap();
-        let _ = stdout.write(b"\n").unwrap();
-    }}
+        assert!($file.write(format!($($args)*).as_bytes()).is_ok());
+    }};
 }
 
 #[macro_export]
 macro_rules! nprint {
     ($($args:tt)*) => {{
-        use std::io::Write;
         let mut stdout = $crate::stdout();
-        stdout.write_fmt(format_args!($($args)*)).unwrap();
-    }}
+        $crate::nwrite!(stdout, $($args)*);
+    }};
 }
 
 #[macro_export]
 macro_rules! neprintln {
     ($($args:tt)*) => {{
-        use std::io::Write;
-        let mut stderr = $crate::stderr().lock();
-        stderr.write_fmt(format_args!($($args)*)).unwrap();
-        let _ = stderr.write(b"\n").unwrap();
-    }}
+        let mut stderr = $crate::stderr();
+        $crate::nwriteln!(stderr, $($args)*);
+    }};
 }
 
 #[macro_export]
 macro_rules! neprint {
     ($($args:tt)*) => {{
-        use std::io::Write;
         let mut stderr = $crate::stderr();
-        stderr.write_fmt(format_args!($($args)*)).unwrap();
-    }}
+        $crate::nwrite!(stderr, $($args)*);
+    }};
 }
