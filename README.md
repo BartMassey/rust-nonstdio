@@ -31,6 +31,10 @@ reasonable efficiency.
 
 * [x] Implement `print!()` etc as `nprint!()` etc.
 
+* [ ] Ensure that `stdout()` etc return a reference
+      to a global `StdioBuf` when possible rather than
+      flushing and creating a new one.
+
 * [ ] Add a line buffering option for buffered output.
 
 * [ ] Add a line reader for buffered input, returning a
