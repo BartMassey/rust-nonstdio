@@ -12,6 +12,9 @@ impl StdioFile {
         self.0.get_mut()
     }
 
+    /// # Safety
+    /// The `fd` must be a valid UNIX file descriptor referencing an open
+    /// file-like object.
     pub unsafe fn from_fd(fd: RawFd) -> Self {
         let file = FromRawFd::from_raw_fd(fd);
         Self(RefCell::new(file))

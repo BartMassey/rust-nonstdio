@@ -84,8 +84,8 @@ impl<'a> StdioBuf<'a> {
         if self.is_locked() {
             return Ok(());
         }
-        let guard = self.file.lock().or_else(|_| {
-            Err(io::Error::new(ErrorKind::Other, LockPoisonError))
+        let guard = self.file.lock().map_err(|_| {
+            io::Error::new(ErrorKind::Other, LockPoisonError)
         })?;
         self.guard = Some(guard);
         Ok(())
