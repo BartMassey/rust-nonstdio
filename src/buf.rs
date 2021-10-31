@@ -289,3 +289,15 @@ pub fn stdout() -> StdioBuf<'static> {
 pub fn stderr() -> StdioBuf<'static> {
     make_stdio(2, STDIO_NBUF)
 }
+
+pub fn stdin_with_nbuf(nbuf: usize) -> StdioBuf<'static> {
+    make_stdio(0, nbuf)
+}
+
+pub fn stdout_with_nbuf(nbuf: usize) -> StdioBuf<'static> {
+    make_stdio(1, nbuf)
+}
+
+pub fn stderr_with_nbuf(nbuf: usize) -> StdioBuf<'static> {
+    make_stdio(2, nbuf)
+}
